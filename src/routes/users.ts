@@ -29,5 +29,7 @@ export async function usersRoutes(app: FastifyInstance) {
     }
 
     await knex('users').insert(userData)
+
+    return reply.status(201).send()
   })
 }
