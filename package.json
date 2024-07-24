@@ -4,8 +4,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "knex": "node --import tsx ./node_modules/.bin/knex",
     "lint": "eslint src --ext .ts --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -25,7 +26,7 @@
     "@types/node": "^20.14.12",
     "@types/supertest": "^6.0.2",
     "eslint": "^8.57.0",
-    "superset": "^2.0.1",
+    "supertest": "^7.0.0",
     "tsup": "^8.2.2",
     "tsx": "^4.16.2",
     "vitest": "^2.0.4"
