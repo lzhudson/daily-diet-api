@@ -1,0 +1,33 @@
+{
+  "name": "ignite-node-js-02-creating-api-rest-with-node-js-challenge",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "lint": "eslint src --ext .ts --fix",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@fastify/cookie": "^9.3.1",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.1",
+    "knex": "^3.1.0",
+    "sqlite3": "^5.1.7",
+    "typescript": "^5.5.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@rocketseat/eslint-config": "^2.2.2",
+    "@types/node": "^20.14.12",
+    "@types/supertest": "^6.0.2",
+    "eslint": "^8.57.0",
+    "superset": "^2.0.1",
+    "tsup": "^8.2.2",
+    "tsx": "^4.16.2",
+    "vitest": "^2.0.4"
+  }
+}
