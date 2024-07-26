@@ -47,8 +47,6 @@ describe('Meals routes', async () => {
         user_id: userId,
       })
 
-    console.log(responseCreateNewMeal)
-
     expect(responseCreateNewMeal.statusCode).toEqual(201)
   })
 
@@ -63,8 +61,48 @@ describe('Meals routes', async () => {
         isInTheDiet: true,
       })
 
-    console.log(responseCreateNewMeal)
-
     expect(responseCreateNewMeal.statusCode).toEqual(401)
+  })
+
+  it('should be able to edit a meal', async () => {
+    const username = 'lzhudson'
+
+    await request(app.server).post('/users').send({
+      username,
+    })
+
+    const signInResponse = await request(app.server).post('/login').send({
+      username,
+    })
+
+    const cookies = signInResponse.get('Set-Cookie') ?? []
+
+    const responseCreateNewMeal = await request(app.server)
+      .post('/meals')
+      .set('Cookie', cookies)
+      .send({
+        name: 'Café da manhã',
+        description: 'Pão, ovos e café',
+        dateAndHour: new Date().toISOString(),
+        isInTheDiet: true,
+      })
+
+    const { id } = responseCreateNewMeal.body[0]
+
+    const mealDataEdited = {
+      name: 'Café da manhã',
+      description: 'Pão, queijo e presunto',
+      dateAndHour: new Date().toISOString(),
+      isInTheDiet: true,
+    }
+
+    const responseEditMeal = await request(app.server)
+      .put(`/meals/${id}`)
+      .set('Cookie', cookies)
+      .send(mealDataEdited)
+
+    console.log('responseEditMeal', responseEditMeal)
+
+    expect(responseEditMeal.statusCode).toEqual(200)
   })
 })
