@@ -3,11 +3,12 @@ import { knex } from '../database'
 import { z } from 'zod'
 import { randomUUID } from 'node:crypto'
 import { checkUserIsLoggedIn } from '../middlewares/check-user-is-logged-in'
+import { checkUserExists } from '../middlewares/check-user-exists'
 
 export async function mealsRoutes(app: FastifyInstance) {
   app.post(
     '/',
-    { preHandler: [checkUserIsLoggedIn] },
+    { preHandler: [checkUserIsLoggedIn, checkUserExists] },
     async (request, reply) => {
       const createMealBodySchema = z.object({
         name: z.string(),
@@ -17,18 +18,6 @@ export async function mealsRoutes(app: FastifyInstance) {
       })
 
       const { userId } = request.cookies
-
-      const userExists = await knex('users')
-        .where({
-          id: userId,
-        })
-        .first()
-
-      if (!userExists) {
-        return reply.status(400).send({
-          error: 'User not exists',
-        })
-      }
 
       const { name, description, dateAndHour, isInTheDiet } =
         createMealBodySchema.parse(request.body)
@@ -42,9 +31,57 @@ export async function mealsRoutes(app: FastifyInstance) {
         user_id: userId,
       }
 
-      await knex('meals').insert(mealData)
+      const meal = await knex('meals').insert(mealData).returning('*')
 
-      return reply.status(201).send()
+      reply.code(201).send(meal)
+    },
+  )
+  app.put(
+    '/:id',
+    { preHandler: [checkUserIsLoggedIn, checkUserExists] },
+    async (request, reply) => {
+      const getMealParamsSchema = z.object({
+        id: z.string().uuid(),
+      })
+
+      const { id } = getMealParamsSchema.parse(request.params)
+
+      const mealExists = await knex('meals')
+        .where({
+          id,
+        })
+        .select('*')
+        .first()
+
+      if (!mealExists) {
+        return reply.status(400).send({
+          error: 'Meal not exists',
+        })
+      }
+
+      const editMealBodySchema = z.object({
+        name: z.string().optional(),
+        description: z.string().optional(),
+        dateAndHour: z.string().optional(),
+        isInTheDiet: z.boolean().optional(),
+      })
+
+      const { name, description, dateAndHour, isInTheDiet } =
+        editMealBodySchema.parse(request.body)
+
+      const mealEdited = await knex('meals')
+        .update({
+          name: name || mealExists.name,
+          description: description || mealExists.description,
+          date_and_hour: dateAndHour || mealExists.date_and_hour,
+          in_the_diet: isInTheDiet || mealExists.in_the_diet,
+        })
+        .where({
+          id,
+        })
+        .returning('*')
+
+      return mealEdited[0]
     },
   )
 }
