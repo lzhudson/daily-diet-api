@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { randomUUID } from 'node:crypto'
 import { checkUserIsLoggedIn } from '../middlewares/check-user-is-logged-in'
 import { checkUserExists } from '../middlewares/check-user-exists'
+import { checkMealExists } from '../middlewares/check-meal-exists'
 
 export async function mealsRoutes(app: FastifyInstance) {
   app.post(
@@ -38,26 +39,9 @@ export async function mealsRoutes(app: FastifyInstance) {
   )
   app.put(
     '/:id',
-    { preHandler: [checkUserIsLoggedIn, checkUserExists] },
-    async (request, reply) => {
-      const getMealParamsSchema = z.object({
-        id: z.string().uuid(),
-      })
-
-      const { id } = getMealParamsSchema.parse(request.params)
-
-      const mealExists = await knex('meals')
-        .where({
-          id,
-        })
-        .select('*')
-        .first()
-
-      if (!mealExists) {
-        return reply.status(400).send({
-          error: 'Meal not exists',
-        })
-      }
+    { preHandler: [checkUserIsLoggedIn, checkUserExists, checkMealExists] },
+    async (request) => {
+      const { meal } = request
 
       const editMealBodySchema = z.object({
         name: z.string().optional(),
@@ -71,17 +55,28 @@ export async function mealsRoutes(app: FastifyInstance) {
 
       const mealEdited = await knex('meals')
         .update({
-          name: name || mealExists.name,
-          description: description || mealExists.description,
-          date_and_hour: dateAndHour || mealExists.date_and_hour,
-          in_the_diet: isInTheDiet || mealExists.in_the_diet,
+          name: name || meal.name,
+          description: description || meal.description,
+          date_and_hour: dateAndHour || meal.date_and_hour,
+          in_the_diet: isInTheDiet || meal.in_the_diet,
         })
         .where({
-          id,
+          id: meal.id,
         })
         .returning('*')
 
       return mealEdited[0]
+    },
+  )
+  app.delete(
+    '/:id',
+    { preHandler: [checkUserIsLoggedIn, checkUserExists, checkMealExists] },
+    async (request) => {
+      const { meal } = request
+
+      await knex('meals').delete('*').where({
+        id: meal.id,
+      })
     },
   )
 }
