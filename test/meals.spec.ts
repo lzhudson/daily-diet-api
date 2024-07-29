@@ -101,8 +101,38 @@ describe('Meals routes', async () => {
       .set('Cookie', cookies)
       .send(mealDataEdited)
 
-    console.log('responseEditMeal', responseEditMeal)
-
     expect(responseEditMeal.statusCode).toEqual(200)
+  })
+
+  it('should be able to delete a meal', async () => {
+    const username = 'lzhudson'
+
+    await request(app.server).post('/users').send({
+      username,
+    })
+
+    const signInResponse = await request(app.server).post('/login').send({
+      username,
+    })
+
+    const cookies = signInResponse.get('Set-Cookie') ?? []
+
+    const responseCreateNewMeal = await request(app.server)
+      .post('/meals')
+      .set('Cookie', cookies)
+      .send({
+        name: 'Café da manhã',
+        description: 'Pão, ovos e café',
+        dateAndHour: new Date().toISOString(),
+        isInTheDiet: true,
+      })
+
+    const { id } = responseCreateNewMeal.body[0]
+
+    const responseDeleteMeal = await request(app.server)
+      .delete(`/meals/${id}`)
+      .set('Cookie', cookies)
+
+    expect(responseDeleteMeal.statusCode).toEqual(200)
   })
 })
