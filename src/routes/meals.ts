@@ -37,6 +37,22 @@ export async function mealsRoutes(app: FastifyInstance) {
       reply.code(201).send(meal)
     },
   )
+  app.get(
+    '/',
+    { preHandler: [checkUserIsLoggedIn, checkUserExists] },
+    async (request) => {
+      const { userId } = request.cookies
+
+      const meals = await knex('meals').select('*').where({
+        user_id: userId,
+      })
+
+      return {
+        meals,
+      }
+    },
+  )
+
   app.put(
     '/:id',
     { preHandler: [checkUserIsLoggedIn, checkUserExists, checkMealExists] },
