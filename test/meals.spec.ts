@@ -64,6 +64,56 @@ describe('Meals routes', async () => {
     expect(responseCreateNewMeal.statusCode).toEqual(401)
   })
 
+  it('should be able to list a meals from logged user', async () => {
+    const username = 'lzhudson'
+
+    await request(app.server).post('/users').send({
+      username,
+    })
+
+    const signInResponse = await request(app.server).post('/login').send({
+      username,
+    })
+
+    const cookies = signInResponse.get('Set-Cookie') ?? []
+    const userId = cookies[0]
+      .split(';')
+      .find((element) => element.includes('userId'))
+      ?.split('=')[1]
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      id: randomUUID(),
+      name: 'Café da manhã',
+      description: 'Pão, ovos e café',
+      dateAndHour: new Date().toISOString(),
+      isInTheDiet: true,
+      user_id: userId,
+    })
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      id: randomUUID(),
+      name: 'Café da manhã',
+      description: 'Pão, ovos e café',
+      dateAndHour: new Date().toISOString(),
+      isInTheDiet: true,
+      user_id: userId,
+    })
+
+    const response = await request(app.server)
+      .get('/meals')
+      .set('Cookie', cookies)
+
+    const { meals } = response.body
+
+    expect(meals).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          user_id: userId,
+        }),
+      ]),
+    )
+  })
+
   it('should be able to edit a meal', async () => {
     const username = 'lzhudson'
 
