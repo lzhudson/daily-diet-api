@@ -53,6 +53,13 @@ export async function mealsRoutes(app: FastifyInstance) {
     },
   )
 
+  app.get('/:id', { preHandler: [checkMealExists] }, async (request) => {
+    const meal = request.meal
+    return {
+      meal,
+    }
+  })
+
   app.put(
     '/:id',
     { preHandler: [checkUserIsLoggedIn, checkUserExists, checkMealExists] },
