@@ -6,7 +6,9 @@
     "dev": "tsx watch src/server.ts",
     "knex": "node --import tsx ./node_modules/.bin/knex",
     "lint": "eslint src --ext .ts --fix",
-    "test": "vitest"
+    "test:users": "vitest test/users.spec.ts",
+    "test:meals": "vitest test/meals.spec.ts",
+    "test:all": "npm run test:users && npm run test:meals"
   },
   "keywords": [],
   "author": "",
