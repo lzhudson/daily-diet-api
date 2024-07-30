@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto'
 import { checkUserIsLoggedIn } from '../middlewares/check-user-is-logged-in'
 import { checkUserExists } from '../middlewares/check-user-exists'
 import { checkMealExists } from '../middlewares/check-meal-exists'
+import { getLongestConsecutiveDietSequence } from '../utils/getLongestConsecutiveDietSequence'
 
 export async function mealsRoutes(app: FastifyInstance) {
   app.post(
@@ -100,6 +101,45 @@ export async function mealsRoutes(app: FastifyInstance) {
       await knex('meals').delete('*').where({
         id: meal.id,
       })
+    },
+  )
+
+  app.get(
+    '/metrics',
+    { preHandler: [checkUserIsLoggedIn, checkUserExists] },
+    async (request) => {
+      const { userId } = request.cookies
+
+      const meals = await knex('meals').select('*').where({
+        user_id: userId,
+      })
+
+      const mealsQuantity = meals.length
+
+      const mealsInTheDiet = meals.reduce(
+        (acc, currentValue) => {
+          if (currentValue.in_the_diet) {
+            acc.inTheDiet += 1
+          } else {
+            acc.offTheDiet += 1
+          }
+
+          return acc
+        },
+        {
+          inTheDiet: 0,
+          offTheDiet: 0,
+        },
+      )
+
+      const sequenceMeals = getLongestConsecutiveDietSequence(meals)
+
+      return {
+        quantity: mealsQuantity,
+        inTheDiet: mealsInTheDiet.inTheDiet,
+        offTheDiet: mealsInTheDiet.offTheDiet,
+        sequence: sequenceMeals,
+      }
     },
   )
 }
