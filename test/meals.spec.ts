@@ -143,9 +143,9 @@ describe('Meals routes', async () => {
         user_id: userId,
       })
 
-    const response = await request(app.server).get(
-      `/meals/${createMealResponse.body[0].id}`,
-    )
+    const response = await request(app.server)
+      .get(`/meals/${createMealResponse.body[0].id}`)
+      .set('Cookie', cookies)
 
     const { meal } = response.body
 
