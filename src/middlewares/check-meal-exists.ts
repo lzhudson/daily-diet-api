@@ -6,6 +6,7 @@ export async function checkMealExists(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
+  const { userId } = request.cookies
   const getMealParamsSchema = z.object({
     id: z.string().uuid(),
   })
@@ -14,6 +15,7 @@ export async function checkMealExists(
   const mealExists = await knex('meals')
     .where({
       id,
+      user_id: userId,
     })
     .select('*')
     .first()
