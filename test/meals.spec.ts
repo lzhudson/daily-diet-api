@@ -229,4 +229,72 @@ describe('Meals routes', async () => {
 
     expect(responseDeleteMeal.statusCode).toEqual(200)
   })
+
+  it('should be able to show the metrics', async () => {
+    const username = 'lzhudson'
+
+    await request(app.server).post('/users').send({
+      username,
+    })
+
+    const signInResponse = await request(app.server).post('/login').send({
+      username,
+    })
+
+    const cookies = signInResponse.get('Set-Cookie') ?? []
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Café da manhã',
+      description: 'Pão de forma, ovos e café',
+      dateAndHour: new Date().toISOString(),
+      isInTheDiet: true,
+    })
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Lanche pré almoço',
+      description: 'Frutas com Iogurte natural',
+      dateAndHour: new Date().toISOString(),
+      isInTheDiet: true,
+    })
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Almoço',
+      description: 'Hamburguer Burguer King',
+      dateAndHour: new Date().toISOString(),
+      isInTheDiet: false,
+    })
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Merenda da tarde',
+      description: 'Banana, aveia e whey protein',
+      dateAndHour: new Date().toISOString(),
+      isInTheDiet: true,
+    })
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Jantar',
+      description: 'Frango desfiado, arroz, batata doce e salada',
+      dateAndHour: new Date().toISOString(),
+      isInTheDiet: true,
+    })
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Ceia',
+      description: 'Castanhas com leite desnatado',
+      dateAndHour: new Date().toISOString(),
+      isInTheDiet: true,
+    })
+
+    const metricsResponse = await request(app.server)
+      .get('/meals/metrics')
+      .set('Cookie', cookies)
+
+    expect(metricsResponse.body).toEqual(
+      expect.objectContaining({
+        quantity: 6,
+        inTheDiet: 5,
+        offTheDiet: 1,
+        sequence: 3,
+      }),
+    )
+  })
 })
